@@ -1,0 +1,4 @@
+# main.py n'a aucune dépendance (bibliothèque standard). Notebook uniquement :
+pandas
+matplotlib
+jupyter

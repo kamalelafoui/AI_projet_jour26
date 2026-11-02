@@ -1,0 +1,29 @@
+# j26 — Threat Modeling d'agents IA (AI in Inclusive Education)
+
+Pipeline Langflow : **Architecture → Menaces → Priorisation (Risque = P × I) → Agent Card Security**, appliqué à un agent de service client (SupportBot : LLM + RAG ChromaDB + outils SQL/Email). Référentiels : OWASP LLM Top 10 (2025), MITRE ATLAS, Goal Guarding.
+
+## Structure
+| Chemin | Contenu |
+|---|---|
+| `langflow/j26_Threat_Modeling_FINAL.json` | Workflow Langflow final (3 prompts, 3 × Gemini 2.5 Flash) |
+| `main.py` | Pipeline + serveur du dashboard (stdlib uniquement) |
+| `dashboard.html` | Dashboard : menu, KPI, graphiques SVG, formulaire |
+| `j26_Threat_Modeling.ipynb` | Notebook : exécution, matrice de risque |
+| `assets/` | Logo et schémas d'architecture |
+| `docs/` | Documentation (docx) et présentation (pptx) |
+
+## Lancement
+```bash
+python main.py            # http://localhost:8001
+python main.py --cli --offline
+export GOOGLE_API_KEY=...  # optionnel : active Gemini
+```
+Sans clé ou sans accès réseau (ex. réseau filtré), le moteur hors-ligne prend le relais automatiquement.
+
+## Langflow
+Importer `langflow/j26_Threat_Modeling_FINAL.json`, renseigner la clé Google dans la variable globale `Key2`, lancer le Playground.
+
+## Sécurité
+Ne jamais committer de clé API : utiliser une variable d'environnement (`.env` est ignoré par git).
+
+Auteur : Kamal El Afoui — ESI Rabat, équipe ITQAN, laboratoire LYRICA.
