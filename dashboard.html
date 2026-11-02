@@ -14,7 +14,7 @@ header h1{font-size:18px;margin:0;color:var(--navy)}@media(prefers-color-scheme:
 #mode{font-size:12px;padding:4px 11px;border-radius:12px;background:var(--gold);color:var(--navy);font-weight:700}
 main{padding:18px 24px;display:grid;gap:16px;max-width:1200px}.view{display:none;gap:16px}.view.on{display:grid}
 .card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.12)}h2{margin:0 0 10px;font-size:15px;color:var(--navy)}@media(prefers-color-scheme:dark){h2{color:var(--gold)}}
-textarea{width:100%;min-height:130px;padding:10px;border:1px solid var(--bd);border-radius:6px;font:14px system-ui;background:var(--card);color:var(--tx)}
+input,select{padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--tx);font:14px system-ui;width:100%}.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}.fg label,.card>label{display:block;font-size:12px;font-weight:600;margin:0 0 4px}.chk{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 12px}.chk label{font-weight:400;font-size:13px;margin:0}.chk input{width:auto}button.alt{background:var(--gold);color:var(--navy);margin-left:8px}input[type=checkbox]{width:auto}textarea{width:100%;min-height:130px;padding:10px;border:1px solid var(--bd);border-radius:6px;font:14px system-ui;background:var(--card);color:var(--tx)}
 button{background:var(--navy);color:#fff;border:0;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:600}label{font-size:13px;margin:0 10px 0 6px}
 .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.kpi{text-align:center;color:#fff;border-radius:10px;padding:14px;background:var(--navy);font-size:13px}.kpi b{font-size:28px;display:block}
 .Critique{background:var(--red)!important}.Élevé{background:var(--org)!important}.Moyen{background:var(--yel)!important}.Faible{background:var(--grn)!important}
@@ -22,14 +22,22 @@ button{background:var(--navy);color:#fff;border:0;padding:10px 18px;border-radiu
 table{border-collapse:collapse;width:100%;font-size:13.5px}th,td{border:1px solid var(--bd);padding:8px;text-align:left;vertical-align:top}th{background:var(--navy);color:#fff}
 .badge{display:inline-block;color:#fff;padding:2px 9px;border-radius:12px;font-size:12px;font-weight:700}
 svg text{fill:var(--tx);font-family:system-ui;font-size:12px}pre{white-space:pre-wrap;font:13px/1.5 ui-monospace,Consolas,monospace;margin:0}
-@media(max-width:900px){body{flex-direction:column}nav{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap}nav .brand{width:100%}.kpis{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+@media(max-width:900px){.fg{grid-template-columns:1fr}body{flex-direction:column}nav{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap}nav .brand{width:100%}.kpis{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
 </style></head><body>
 <nav><div class="brand"><img src="/logo.png" alt="logo"><b>Threat Modeling<br>Agentique</b></div>
 <a class="on" data-v="v1">Analyse</a><a data-v="v2">Tableau de bord</a><a data-v="v3">Menaces</a><a data-v="v4">Agent Card</a><a data-v="v5">Référentiels</a></nav>
 <div class="content"><header><h1>AI in Inclusive Education — Sécurité des agents IA</h1><span id="mode">En attente</span></header>
 <main>
-<section class="view on" id="v1"><div class="card"><h2>Formulaire : architecture de l'agent à analyser</h2><textarea id="arch"></textarea>
-<p><button onclick="run()">Lancer l'analyse</button><input type="checkbox" id="off"><label for="off">Forcer le mode hors-ligne (réseau filtré)</label></p></div></section>
+<section class="view on" id="v1"><div class="card"><h2>Formulaire : décrire l'agent à analyser</h2>
+<div class="fg"><div><label>Nom de l'agent</label><input id="f_name" value="SupportBot"></div>
+<div><label>Rôle</label><input id="f_role" value="assistant de service client"></div>
+<div><label>Modèle LLM</label><select id="f_llm"><option>Gemini 2.5 Flash</option><option>GPT</option><option>Claude</option><option>Llama</option><option>Autre</option></select></div>
+<div><label>Exposition</label><select id="f_exp"><option value="pub">Chat public sur le web</option><option value="int">Usage interne uniquement</option></select></div>
+<div><label>Validation humaine (HITL)</label><select id="f_hitl"><option value="0">Non</option><option value="1">Oui, pour les actions sensibles</option></select></div>
+<div><label>Mémoire RAG</label><select id="f_rag"><option value="1">Oui</option><option value="0">Non</option></select><input id="f_db" value="ChromaDB" title="Base vectorielle"></div></div>
+<label>Outils accessibles à l'agent</label><div class="chk"><label><input type="checkbox" id="t_sql" checked> API SQL (données clients)</label><label><input type="checkbox" id="t_mail" checked> Email / remboursement</label><label><input type="checkbox" id="t_code"> Exécution de code</label><label><input type="checkbox" id="t_api"> API externes</label><label><input type="checkbox" id="t_web"> Navigation web</label></div>
+<label>Architecture générée <input type="checkbox" id="free" style="margin-left:12px"> édition libre</label><textarea id="arch" readonly></textarea>
+<p><button onclick="run()">Lancer l'analyse</button><button class="alt" onclick="preset()">Exemple SupportBot</button><input type="checkbox" id="off"><label for="off">Forcer le mode hors-ligne</label></p></div></section>
 <section class="view" id="v2"><div class="kpis" id="kpis"></div>
 <div class="g2"><div class="card"><h2>Score de risque par menace (P × I, sur 25)</h2><div id="bars"></div></div><div class="card"><h2>Répartition par niveau</h2><div id="donut"></div></div></div>
 <div class="g2"><div class="card"><h2>Matrice de risque 5 × 5</h2><div id="heat"></div></div><div class="card"><h2>Mémoire RAG vs Actions Tools</h2><div id="split"></div><h2 style="margin-top:14px">Couverture OWASP LLM Top 10</h2><div id="owasp"></div></div></div></section>
@@ -67,5 +75,17 @@ async function run(){$('mode').textContent='Analyse…';
  $('th').innerHTML='<table><tr><th>Menace</th><th>Cible</th><th>Mécanisme</th></tr>'+T.map(t=>`<tr><td><b>${esc(t.n)}</b></td><td>${esc(t.cible)}</td><td>${esc(t.d)}</td></tr>`).join('')+'</table>';
  $('rk').innerHTML='<table><tr><th>#</th><th>Niveau</th><th>Détail</th></tr>'+R.map((r,i)=>`<tr><td>${i+1}</td><td><span class="badge ${r.lv}">${r.lv}</span></td><td>${md(r.raw.replace(/^\s*\d+\.\s*/,''))}</td></tr>`).join('')+'</table>';
  $('ac').innerHTML=tbl(j.agent_card.replace(/^#+.*$/m,''));document.querySelector('nav a[data-v=v2]').click()}
-fetch('/api/default').then(r=>r.json()).then(j=>{$('arch').value=j.architecture;run()});
+
+const tools={t_sql:"un outil (API) qui lui permet de requêter la base de données SQL des clients pour voir leurs factures",t_mail:"un outil pour envoyer automatiquement des emails de remboursement en cas de réclamation justifiée",t_code:"un outil d'exécution de code (interpréteur)",t_api:"un outil d'appel d'API externes",t_web:"un outil de navigation sur des pages externes"};
+function compose(){if($('free').checked)return;const n=$('f_name').value||'Agent',L=[];
+ let t=`Un agent ${$('f_role').value||'IA'} nommé '${n}'. Il utilise un LLM (${$('f_llm').value})`;
+ t+=$('f_rag').value=='1'?` connecté à une base vectorielle (${$('f_db').value||'vectorielle'}) contenant des documents et l'historique (système RAG).`:'.';
+ Object.keys(tools).forEach(k=>{if($(k).checked)L.push(tools[k])});
+ t+=L.length?` L'agent a accès à ${L.join(' ; ')}.`:" L'agent n'a accès à aucun outil.";
+ t+=$('f_exp').value=='pub'?' Exposition : chat public sur le web.':' Exposition : usage interne uniquement.';
+ t+=$('f_hitl').value=='1'?' Validation humaine (HITL) requise pour les actions sensibles.':' Aucune validation humaine.';
+ $('arch').value=t}
+function preset(){f_name.value='SupportBot';f_role.value='assistant de service client';f_llm.selectedIndex=0;f_exp.value='pub';f_hitl.value='0';f_rag.value='1';f_db.value='ChromaDB';t_sql.checked=t_mail.checked=true;t_code.checked=t_api.checked=t_web.checked=false;free.checked=false;compose();run()}
+document.querySelectorAll('#v1 input,#v1 select').forEach(e=>e.addEventListener('input',()=>{if(e.id=='free')$('arch').readOnly=!e.checked;compose()}));
+compose();run();
 </script></body></html>

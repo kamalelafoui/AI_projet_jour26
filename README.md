@@ -7,7 +7,7 @@ Pipeline Langflow : **Architecture → Menaces → Priorisation (Risque = P × I
 |---|---|
 | `langflow/Correction AI in inclusive education.json` | Workflow Langflow final (3 prompts, 3 × Gemini 2.5 Flash) |
 | `main.py` | Pipeline + serveur du dashboard (stdlib uniquement) |
-| `dashboard.html` | Dashboard : menu, KPI, graphiques SVG, formulaire |
+| `dashboard.html` | Dashboard : formulaire structuré, menu, KPI, graphiques SVG |
 | `j26_Threat_Modeling.ipynb` | Notebook : exécution, matrice de risque |
 | `assets/` | Logo et schémas d'architecture |
 | `docs/` | Documentation (docx) et présentation (pptx) |

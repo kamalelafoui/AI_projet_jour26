@@ -39,22 +39,47 @@ def name_of(arch):
     return m.group(1).strip() if m else "Agent"
 
 def threats(arch):
-    f = detect(arch); T = []
-    T.append(dict(n="Injection de prompt indirecte via documents RAG", cible="Mémoire RAG", ref="OWASP LLM01 + LLM08 / ATLAS AML.T0051 (LLM Prompt Injection)", P=4, I=4,
-      d="Un attaquant dépose un ticket ou un message contenant des instructions cachées ; indexé dans ChromaDB, il est récupéré par similarité et injecté dans le contexte, où le LLM l'exécute comme une instruction (changement d'intention).",
-      j="Probabilité forte (chat public, ingestion ouverte), impact fort sur l'intégrité des réponses et des outils."))
-    T.append(dict(n="Empoisonnement de la base vectorielle (RAG poisoning)", cible="Mémoire RAG", ref="OWASP LLM04 + LLM08 / ATLAS AML.T0020 (Poison Training Data)", P=3, I=4,
-      d="Injection massive de tickets falsifiés (politique de remboursement erronée, faux numéros de support) qui deviennent des 'faits' de référence : l'agent diffuse des informations fausses et prend des décisions biaisées durablement.",
-      j="Probabilité moyenne (nécessite une ingestion sans contrôle), impact fort et persistant sur toutes les réponses."))
-    T.append(dict(n="Action non autorisée : remboursement frauduleux (Excessive Agency)", cible="Actions Tools", ref="OWASP LLM06 + LLM01 / ATLAS AML.T0051 -> abus d'outil", P=4, I=5,
-      d="Par injection (directe ou indirecte), l'attaquant force l'appel de l'outil d'emails de remboursement avec des arguments forgés (montant, destinataire) : perte financière sans validation humaine ni schéma strict.",
-      j="Probabilité forte (outil à effet direct, pas de Human-in-the-loop), impact maximal : perte financière et fraude."))
-    T.append(dict(n="Escalade de privilèges et exfiltration de PII via l'outil SQL", cible="Actions Tools", ref="OWASP LLM02 + LLM06 + LLM05 / ATLAS AML.T0025 (Exfiltration)", P=3, I=5,
-      d="L'agent, avec les droits élevés de l'API SQL, est manipulé pour générer des requêtes hors périmètre (factures d'autres clients, IDOR/BOLA, injection SQL) puis les restitue ou les envoie par email à l'attaquant.",
-      j="Probabilité moyenne (dépend du RBAC), impact très élevé : fuite de données personnelles et conformité (RGPD / loi 09-08)."))
-    T.append(dict(n="Déni de service par boucles de raisonnement et appels massifs", cible="Actions Tools", ref="OWASP LLM10 (Unbounded Consumption) / ATLAS AML.T0029 (Denial of ML Service)", P=4, I=2,
-      d="Requêtes conçues pour provoquer des boucles Chain-of-Thought infinies ou des appels répétés à l'API SQL / au LLM, épuisant quotas, coûts et disponibilité du chat public.",
-      j="Probabilité forte (chat anonyme), impact modéré : indisponibilité et surcoût, sans compromission de données."))
+    f = detect(arch); hitl = bool(re.search(r"hitl", arch.lower())); T = []
+    pub = 1 if f["public"] else 0
+    cap = lambda v: max(1, min(5, v))
+    if f["rag"]:
+        T.append(dict(n="Injection de prompt indirecte via documents RAG", cible="Mémoire RAG", ref="OWASP LLM01 + LLM08 / ATLAS AML.T0051 (LLM Prompt Injection)", P=3+pub, I=4,
+          d="Un attaquant dépose un document ou un ticket contenant des instructions cachées ; indexé dans la base vectorielle, il est récupéré par similarité et injecté dans le contexte, où le LLM l'exécute comme une instruction (changement d'intention).",
+          j="Probabilité liée à l'ouverture de l'ingestion et à l'exposition, impact fort sur l'intégrité des réponses et des outils."))
+        T.append(dict(n="Empoisonnement de la base vectorielle (RAG poisoning)", cible="Mémoire RAG", ref="OWASP LLM04 + LLM08 / ATLAS AML.T0020 (Poison Training Data)", P=3, I=4,
+          d="Injection massive de documents falsifiés (politiques erronées, faux contacts) qui deviennent des 'faits' de référence : l'agent diffuse des informations fausses et décide de façon biaisée, durablement.",
+          j="Probabilité moyenne (ingestion sans contrôle de provenance), impact fort et persistant sur toutes les réponses."))
+    else:
+        T.append(dict(n="Injection de prompt directe (jailbreak, détournement d'objectif)", cible="Entrées / Prompt", ref="OWASP LLM01 + LLM07 / ATLAS AML.T0051 (LLM Prompt Injection)", P=3+pub, I=4,
+          d="L'utilisateur formule des instructions contradictoires ou de réinitialisation qui font dévier l'agent de son objectif initial et peuvent révéler le System Prompt.",
+          j="Probabilité forte si l'agent est exposé, impact fort sur l'intégrité de l'intention."))
+        T.append(dict(n="Usurpation d'outil et Tool Poisoning", cible="Actions Tools", ref="OWASP LLM03 + LLM06 / ATLAS AML.T0010 (ML Supply Chain Compromise)", P=2, I=4,
+          d="Un outil ou un plugin compromis (ou une description d'outil piégée) trompe l'agent sur son identité ou sa finalité et lui fait exécuter des actions illégitimes avec ses privilèges.",
+          j="Probabilité moyenne (dépend de la chaîne d'approvisionnement), impact fort via les privilèges de l'agent."))
+    if f["mail"]:
+        T.append(dict(n="Action non autorisée : remboursement / email frauduleux (Excessive Agency)", cible="Actions Tools", ref="OWASP LLM06 + LLM01 / ATLAS AML.T0051 -> abus d'outil", P=3+pub, I=4 if hitl else 5,
+          d="Par injection (directe ou indirecte), l'attaquant force l'appel de l'outil d'emails ou de paiement avec des arguments forgés (montant, destinataire) : perte financière sans schéma strict" + (" ; le Human-in-the-loop limite l'impact." if hitl else " ni validation humaine."),
+          j="Outil à effet direct : " + ("validation humaine présente, impact réduit." if hitl else "pas de Human-in-the-loop, impact maximal (perte financière, fraude).")))
+    elif f["code"]:
+        T.append(dict(n="Exécution de code non autorisée (RCE via l'agent)", cible="Actions Tools", ref="OWASP LLM05 + LLM06 / ATLAS AML.T0051 -> exécution", P=3+pub, I=4 if hitl else 5,
+          d="Une injection amène l'agent à générer et exécuter du code arbitraire dans l'interpréteur : accès au système de fichiers, aux secrets et au réseau interne.",
+          j="Impact maximal sans bac à sable ; " + ("validation humaine présente." if hitl else "aucune validation humaine.")))
+    else:
+        T.append(dict(n="Action non autorisée via les outils (Excessive Agency)", cible="Actions Tools", ref="OWASP LLM06 + LLM01", P=2+pub, I=3,
+          d="Un outil disposant de droits trop larges est appelé avec des arguments forgés par injection, produisant des effets non voulus sur le système d'information.",
+          j="Probabilité et impact dépendent du périmètre des outils."))
+    if f["sql"]:
+        T.append(dict(n="Escalade de privilèges et exfiltration de PII via l'outil SQL", cible="Actions Tools", ref="OWASP LLM02 + LLM06 + LLM05 / ATLAS AML.T0025 (Exfiltration)", P=3, I=5,
+          d="L'agent, avec les droits élevés de l'API SQL, est manipulé pour générer des requêtes hors périmètre (données d'autres utilisateurs, IDOR/BOLA, injection SQL) puis les restitue ou les transmet à l'attaquant.",
+          j="Probabilité moyenne (dépend du RBAC), impact très élevé : fuite de données personnelles et conformité (RGPD / loi 09-08)."))
+    else:
+        T.append(dict(n="Fuite d'informations sensibles et du System Prompt", cible="Entrées / Prompt", ref="OWASP LLM02 + LLM07 / ATLAS AML.T0024", P=3, I=3,
+          d="Des requêtes conçues extraient le System Prompt, des secrets ou des données du contexte conversationnel.",
+          j="Probabilité moyenne, impact modéré selon la sensibilité du contexte."))
+    T.append(dict(n="Déni de service par boucles de raisonnement et appels massifs", cible="Actions Tools", ref="OWASP LLM10 (Unbounded Consumption) / ATLAS AML.T0029 (Denial of ML Service)", P=3+pub, I=2,
+      d="Requêtes conçues pour provoquer des boucles Chain-of-Thought infinies ou des appels répétés aux outils et au LLM, épuisant quotas, coûts et disponibilité.",
+      j="Probabilité plus forte pour un agent exposé au public, impact modéré : indisponibilité et surcoût, sans compromission de données."))
+    for t in T: t["P"] = cap(t["P"]); t["I"] = cap(t["I"])
     return T
 
 def level(s): return "Critique" if s >= 20 else "Élevé" if s >= 12 else "Moyen" if s >= 6 else "Faible"
@@ -69,12 +94,12 @@ def offline_pipeline(arch):
 
 | Élément | Spécification de Sécurité |
 | :--- | :--- |
-| **Nom de l'Agent ciblé** | {name} (assistant service client RAG + outils SQL/Email) |
+| **Nom de l'Agent ciblé** | {name} |
 | **Scénario d'Attaque Principal** | {top['n']} : {top['d']} |
-| **Vecteur d'Attaque** | Chat web public -> contexte de l'agent (ou ticket empoisonné récupéré par ChromaDB) -> appel d'outil email de remboursement -> effet financier |
+| **Vecteur d'Attaque** | Entrée utilisateur (ou document récupéré par le RAG) -> contexte de l'agent -> appel d'outil -> effet réel sur le système d'information |
 | **Impact RAG / Système** | {level(top['P']*top['I'])} — compromission de l'intention de l'agent, déclenchement d'effets réels (emails/remboursements) et risque d'accès aux données SQL clients |
 | **Référentiels (OWASP / ATLAS)** | {top['ref']} ; complémentaires : LLM02, LLM04, LLM08, LLM10 |
-| **Mitigation (Technique & Workflow)** | (1) Validation Pydantic/JSON Schema des arguments d'outils (montant plafonné, destinataire = email du client authentifié) ; (2) Human-in-the-loop obligatoire au-delà d'un seuil + agent Judge/Guard qui compare l'action au Goal initial ; (3) System Message immuable réinjecté à chaque tour ; (4) RBAC / moindre privilège, SQL paramétré en lecture seule filtré par client_id ; (5) filtrage et provenance des documents RAG ; (6) quotas, timeouts et limite d'itérations |"""
+| **Mitigation (Technique & Workflow)** | (1) Validation Pydantic/JSON Schema des arguments d'outils (plafonds, destinataire et périmètre imposés) ; (2) Human-in-the-loop obligatoire pour les actions sensibles + agent Judge/Guard qui compare l'action au Goal initial ; (3) System Message immuable réinjecté à chaque tour ; (4) RBAC / moindre privilège, SQL paramétré en lecture seule filtré par client_id ; (5) filtrage et provenance des documents RAG ; (6) quotas, timeouts et limite d'itérations |"""
     return s1, s2, s3
 
 # ---------- Mode Gemini ----------
