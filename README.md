@@ -5,7 +5,7 @@ Pipeline Langflow : **Architecture → Menaces → Priorisation (Risque = P × I
 ## Structure
 | Chemin | Contenu |
 |---|---|
-| `langflow/j26_Threat_Modeling_FINAL.json` | Workflow Langflow final (3 prompts, 3 × Gemini 2.5 Flash) |
+| `langflow/Correction AI in inclusive education.json` | Workflow Langflow final (3 prompts, 3 × Gemini 2.5 Flash) |
 | `main.py` | Pipeline + serveur du dashboard (stdlib uniquement) |
 | `dashboard.html` | Dashboard : menu, KPI, graphiques SVG, formulaire |
 | `j26_Threat_Modeling.ipynb` | Notebook : exécution, matrice de risque |
@@ -29,7 +29,7 @@ docker compose up --build   # http://localhost:8001
 Sans clé (ou réseau filtré), le conteneur fonctionne en mode hors-ligne.
 
 ## Langflow
-Importer `langflow/j26_Threat_Modeling_FINAL.json`, renseigner la clé Google dans la variable globale `Key2`, lancer le Playground.
+Importer `langflow/Correction AI in inclusive education.json`, renseigner la clé Google dans la variable globale `Key2`, lancer le Playground.
 
 ## Sécurité
 Ne jamais committer de clé API : utiliser une variable d'environnement (`.env` est ignoré par git).

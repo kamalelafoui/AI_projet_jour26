@@ -18,7 +18,7 @@ DEFAULT_ARCH = ("Un agent assistant de service client nommé 'SupportBot'. Il ut
 
 # ---------- Prompts (identiques au JSON Langflow final) ----------
 def _flow_prompts():
-    d = json.load(open(os.path.join(HERE, "langflow", "j26_Threat_Modeling_FINAL.json"), encoding="utf-8"))
+    d = json.load(open(os.path.join(HERE, "langflow", "Correction AI in inclusive education.json"), encoding="utf-8"))
     out = {}
     for n in d["data"]["nodes"]:
         if n["data"]["type"] == "Prompt Template":
