@@ -2,13 +2,13 @@
 """j26 - Threat Modeling d'un agent IA (AI in inclusive education / sécurité agentique).
 Pipeline : Architecture -> Menaces -> Priorisation (P x I) -> Agent Card Security.
 Mode Gemini si GOOGLE_API_KEY est défini et accessible, sinon moteur hors-ligne (réseau ESI filtré).
-Lancement : python main.py   ->  http://localhost:8001
+Lancement : python main.py   ->  http://localhost:8000
 Aucune dépendance externe (bibliothèque standard uniquement)."""
 import json, os, re, sys, urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PORT = int(os.environ.get("PORT", 8001))
+PORT = int(os.environ.get("PORT", 8000))
 MODEL = "gemini-2.5-flash"
 DEFAULT_ARCH = ("Un agent assistant de service client nommé 'SupportBot'. Il utilise un LLM connecté à une base "
     "vectorielle (ChromaDB) contenant l'historique des tickets clients et les documentations internes (système RAG). "
