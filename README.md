@@ -20,6 +20,14 @@ export GOOGLE_API_KEY=...  # optionnel : active Gemini
 ```
 Sans clé ou sans accès réseau (ex. réseau filtré), le moteur hors-ligne prend le relais automatiquement.
 
+## Docker
+```bash
+cp .env.example .env        # optionnel : renseigner GOOGLE_API_KEY
+docker compose up --build   # http://localhost:8001
+# ou : docker build -t j26-threat . && docker run -p 8001:8001 -e GOOGLE_API_KEY=... j26-threat
+```
+Sans clé (ou réseau filtré), le conteneur fonctionne en mode hors-ligne.
+
 ## Langflow
 Importer `langflow/j26_Threat_Modeling_FINAL.json`, renseigner la clé Google dans la variable globale `Key2`, lancer le Playground.
 

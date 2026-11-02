@@ -1,0 +1,8 @@
+services:
+  threat-dashboard:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}   # vide = mode hors-ligne
+    restart: unless-stopped
